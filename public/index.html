@@ -6,101 +6,166 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IDS 动态组字工具</title>
     <style>
+        :root {
+            --bg: #f4f6f9;
+            --card: #fff;
+            --muted: #555;
+            --accent: #2196F3;
+            --green: #4CAF50;
+        }
+
+        html,
         body {
-            background-color: #f4f6f9;
+            height: 100%;
+        }
+
+        body {
+            background-color: var(--bg);
             font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
             margin: 0;
             padding: 0;
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 980px;
             width: 100%;
-            padding: 20px;
+            padding: 18px;
             flex: 1;
             margin: 0 auto;
+            box-sizing: border-box;
         }
 
         h1 {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
             color: #333;
             font-weight: 600;
+        }
+        
+        /* New layout container for two-column view */
+        .main-layout {
+            display: grid;
+            gap: 16px;
         }
 
         label {
             font-weight: bold;
             margin-bottom: 8px;
             display: block;
-            color: #555;
+            color: var(--muted);
         }
 
-        input[type="text"] {
+        #ids-input {
             width: 100%;
-            padding: 10px;
-            font-size: 16px;
+            padding: 12px 14px;
+            font-size: 18px;
             border: 2px solid #ccc;
-            border-radius: 5px;
+            border-radius: 8px;
             outline: none;
             box-sizing: border-box;
-            transition: border-color 0.2s;
+            transition: border-color 0.16s;
+            background: white;
+            letter-spacing: 0.06em;
         }
 
-        input[type="text"]:focus {
-            border-color: #4CAF50;
+        #ids-input:focus {
+            border-color: var(--green);
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
         }
 
         .btn {
-            display: inline-block;
-            padding: 10px 14px;
-            margin: 5px 2px;
-            font-size: 14px;
-            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 12px;
+            margin: 0;
+            font-size: 15px;
+            font-weight: 600;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: transform .08s ease, background-color .12s;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
         }
 
         .btn-green {
-            background-color: #4CAF50;
-        }
-
-        .btn-green:hover {
-            background-color: #43a047;
+            background-color: var(--green);
         }
 
         .btn-blue {
-            background-color: #2196F3;
-        }
-
-        .btn-blue:hover {
-            background-color: #1976D2;
+            background-color: var(--accent);
         }
 
         .btn-gray {
             background-color: #607D8B;
         }
 
-        .btn-gray:hover {
-            background-color: #546E7A;
+        .btn-ghost {
+            background: rgba(0, 0, 0, 0.04);
+            color: #111;
         }
 
+        .radicals-panel {
+            margin-top: 12px;
+            background: var(--card);
+            padding: 12px;
+            border-radius: 10px;
+            box-shadow: 0 4px 18px rgba(18, 38, 63, 0.06);
+        }
+
+        .grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .radical {
+            min-width: 44px;
+            height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            border-radius: 8px;
+            background: #f7f9fb;
+            color: #222;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
         .svg-container {
-            border: 1px solid #ccc;
+            border: 1px solid #ddd;
             background: white;
-            margin: 20px auto;
-            width: 512px;
-            height: 512px;
+            margin: 16px auto;
+            width: 100%;
+            height: auto;
+            aspect-ratio: 1 / 1;
+            max-width: 512px;
             display: flex;
             justify-content: center;
             align-items: center;
-            border-radius: 6px;
-            box-shadow: 0px 3px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            box-shadow: 0px 6px 18px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
         }
 
         svg {
@@ -110,22 +175,88 @@
 
         footer {
             background-color: #e9ecef;
-            padding: 10px 0;
+            padding: 12px 0;
             text-align: center;
-            font-size: 14px;
+            font-size: 13px;
             color: #555;
             border-top: 1px solid #ccc;
         }
 
         footer a {
-            color: #2196F3;
+            color: var(--accent);
             text-decoration: none;
-            font-weight: bold;
-            padding: 10px;
+            margin: 0 8px;
         }
 
-        footer a:hover {
-            text-decoration: underline;
+        /* 响应式调整 */
+        @media (min-width: 900px) {
+            .main-layout {
+                display: flex;
+                gap: 24px;
+                align-items: flex-start;
+            }
+            .input-area {
+                flex: 1.2; 
+                min-width: 0;
+            }
+            .output-area {
+                flex: 1;
+                min-width: 0;
+                position: sticky; 
+                top: 18px;
+            }
+            .svg-container {
+                max-width: none;
+                margin: 0; 
+            }
+        }
+
+        @media (max-width: 899px) {
+            .container {
+                padding: 14px;
+            }
+
+            .svg-container {
+                width: 90vw;
+                height: 90vw;
+                 aspect-ratio: unset; /* Revert aspect-ratio if fixed dimensions are preferred */
+            }
+
+            #ids-input {
+                font-size: 16px;
+                padding: 11px;
+            }
+
+            .radical {
+                min-width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .controls {
+                gap: 6px;
+            }
+
+            .btn {
+                padding: 10px;
+                font-size: 16px;
+                border-radius: 10px;
+            }
+
+            .radical {
+                min-width: 48px;
+                height: 48px;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            .svg-container {
+                border-radius: 6px;
+            }
         }
     </style>
 </head>
@@ -133,103 +264,166 @@
 <body>
     <div class="container">
         <h1>动态组字</h1>
+        
+        <div class="main-layout">
+            
+            <div class="input-area">
+                <label for="ids-input">输入表意文字描述序列</label>
+                <input type="text" id="ids-input" placeholder="例如：⿰亻尔" autocomplete="off" />
 
-        <div id="direct-input">
-            <label for="ids-input">输入表意文字描述序列</label>
-            <input type="text" id="ids-input" placeholder="⿰亻尔">
+                <div class="controls">
+                    <button class="btn btn-green" id="renderBtn">渲染</button>
+                    <button class="btn btn-blue" id="downloadBtn">下载SVG</button>
+                    <button class="btn btn-ghost" id="clearBtn">清空</button>
+                </div>
 
-            <div style="margin-top: 10px;">
-                <button class="btn btn-green" onclick="renderDirect()">渲染</button>
-                <button class="btn btn-blue" onclick="downloadSVG()">下载SVG</button>
-                <br>
-                <button class="btn btn-gray" onclick="add('⿰')">⿰</button>
-                <button class="btn btn-gray" onclick="add('⿱')">⿱</button>
-                <button class="btn btn-gray" onclick="add('⿲')">⿲</button>
-                <button class="btn btn-gray" onclick="add('⿳')">⿳</button>
-                <button class="btn btn-gray" onclick="add('⿴')">⿴</button>
-                <button class="btn btn-gray" onclick="add('⿵')">⿵</button>
-                <button class="btn btn-gray" onclick="add('⿶')">⿶</button>
-                <button class="btn btn-gray" onclick="add('⿷')">⿷</button>
-                <button class="btn btn-gray" onclick="add('⿸')">⿸</button>
-                <button class="btn btn-gray" onclick="add('⿹')">⿹</button>
-                <button class="btn btn-gray" onclick="add('⿺')">⿺</button>
-                <button class="btn btn-gray" onclick="add('⿻')">⿻</button>
+                <div class="radicals-panel" aria-label="表意文字描述字符">
+                    <label>表意文字描述字符</label>
+                    <div class="grid" id="idcGrid">
+                    </div>
+                </div>
+                <div class="radicals-panel" aria-label="常见部首">
+                    <label>常见部首</label>
+                    <div class="grid" id="radicalsGrid">
+                    </div>
+                </div>
             </div>
-        </div>
+            
+            <div class="output-area">
+                 <div class="svg-container" role="img" aria-label="组字渲染结果">
+                    <svg id="output-svg" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                        <g></g>
+                    </svg>
+                </div>
+            </div>
 
-        <div class="svg-container">
-            <svg id="output-svg" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-                <g></g>
-            </svg>
         </div>
     </div>
 
     <footer>
         <a href="https://github.com/LingbaSanar/pinz" target="_blank">源代码</a>
+        <a href="https://github.com/LingbaSanar/pinz/issues" target="_blank">发表改进意见</a>
         <a href="https://github.com/kamichikoichi/kage-engine" target="_blank">Kage字形引擎</a>
         <a href="https://glyphwiki.org/" target="_blank">GlyphWiki</a>
     </footer>
 
     <script src="kage.js"></script>
     <script>
-        function renderDirect() {
-            const ids = document.getElementById('ids-input').value;
+        // 常见部首/偏旁/IDC 符号
+        const COMMON_RADICALS = ['亻', '口', '囗', '女', '忄', '心', '扌', '氵','冫', '牜', '艹', '木', '禾', '火', '灬', '犭', '王', '卩', '刂', '石', '穴', '目', '贝', '貝', '金', '钅', '衤','礻',  '⻊',  '𥫗','宀', '冖', '亠', '罒', '糸', '纟', '讠', '豸','隹', '阝', '彳', '夂','门','辶','冂'];
+        const idc = ['⿰', '⿱', '⿲', '⿳', '⿴', '⿵', '⿶', '⿷', '⿸', '⿹', '⿺', '⿻']
 
-            fetch('/processids', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    ids: ids,
-                    size: 512
-                })
-            })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.text();
-                })
-                .then(kageCommand => {
-                    const kage = new Kage();
-                    kage.kUseCurve = false;
-                    const polygons = new Polygons();
+        // 初始化部首面板
+        const radicalsGrid = document.getElementById('radicalsGrid');
+        COMMON_RADICALS.forEach(r => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'radical';
+            b.title = '插入：' + r;
+            b.textContent = r;
+            b.addEventListener('click', () => insertAtCursor(r));
+            b.addEventListener('touchstart', (e) => { e.preventDefault(); insertAtCursor(r); });
+            radicalsGrid.appendChild(b);
+        });
+        const idcGrid = document.getElementById('idcGrid');
+        idc.forEach(r => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'radical';
+            b.title = '插入：' + r;
+            b.textContent = r;
+            b.addEventListener('click', () => insertAtCursor(r));
+            b.addEventListener('touchstart', (e) => { e.preventDefault(); insertAtCursor(r); });
+            idcGrid.appendChild(b);
+        });
 
-                    const size = 512;
+        const input = document.getElementById('ids-input');
+        const renderBtn = document.getElementById('renderBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const clearBtn = document.getElementById('clearBtn');
 
-                    kage.kBuhin.push('ids', kageCommand);
+        // 在光标/选中位置插入字符，并保持光标在插入后位置
+        function insertAtCursor(text) {
+            const el = input;
+            el.focus();
 
-                    kage.makeGlyph(polygons, 'ids');
+            // 对于 input/textarea 使用 selectionStart/selectionEnd
+            const start = el.selectionStart ?? el.value.length;
+            const end = el.selectionEnd ?? el.value.length;
 
-                    const scale = size / 200;
+            const before = el.value.slice(0, start);
+            const after = el.value.slice(end);
+            const newVal = before + text + after;
+            el.value = newVal;
 
-                    const paths = polygons.array.map(poly => {
-                        const pts = poly.array
-                            .map((pt, i) => `${i === 0 ? 'M' : 'L'}${(pt.x * scale).toFixed(2)},${(pt.y * scale).toFixed(2)}`)
-                            .join(' ');
-                        return `<path d="${pts} Z" fill="black" />`;
-                    }).join('\n  ');
+            const newPos = start + text.length;
+            // 将光标放到插入后（方便连续插入）
+            el.setSelectionRange(newPos, newPos);
 
-                    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">\n${paths}\n</svg>`;
+            // 触发 input 事件（如有监听器）
+            const evt = new Event('input', { bubbles: true });
+            el.dispatchEvent(evt);
+        }
 
-                    const g = document.querySelector('#output-svg g');
-                    g.innerHTML = svg;
-                })
-                .catch(error => {
-                    console.error('Error fetching SVG:', error);
+        async function renderDirect() {
+            const ids = input.value.trim();
+            if (!ids) return;
+
+            try {
+                renderBtn.disabled = true;
+                renderBtn.textContent = '渲染中...';
+
+                const res = await fetch('/processids', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ids: ids, size: 512 })
                 });
+
+                if (!res.ok) throw new Error('网络响应非正常：' + res.status);
+                const kageCommand = await res.text();
+
+                // 调用 kage 引擎生成多边形并写入 SVG
+                const kage = new Kage();
+                kage.kUseCurve = false;
+                const polygons = new Polygons();
+                const size = 512;
+
+                kage.kBuhin.push('ids', kageCommand);
+                kage.makeGlyph(polygons, 'ids');
+
+                const scale = size / 200;
+                const g = document.querySelector('#output-svg g');
+                g.innerHTML = '';
+
+                polygons.array.forEach(poly => {
+                    const pts = poly.array
+                        .map((pt, i) => `${i === 0 ? 'M' : 'L'}${(pt.x * scale).toFixed(2)},${(pt.y * scale).toFixed(2)}`)
+                        .join(' ');
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('d', pts + ' Z');
+                    path.setAttribute('fill', 'black');
+                    g.appendChild(path);
+                });
+
+            } catch (err) {
+                console.error(err);
+                alert('渲染失败：' + err.message);
+            } finally {
+                renderBtn.disabled = false;
+                renderBtn.textContent = '渲染';
+            }
         }
 
-        function add(idc) {
-            document.getElementById('ids-input').value += idc;
-        }
-
+        // 下载当前显示的 SVG（会构造 standalone SVG 文件）
         function downloadSVG() {
-            const svg = document.getElementById('output-svg');
-            const serializer = new XMLSerializer();
-            const svgString = serializer.serializeToString(svg);
+            const svgEl = document.getElementById('output-svg');
+            const clone = svgEl.cloneNode(true);
+            clone.setAttribute('width', '512');
+            clone.setAttribute('height', '512');
+            clone.setAttribute('viewBox', '0 0 512 512');
 
+            const serializer = new XMLSerializer();
+            const svgString = serializer.serializeToString(clone);
             const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
             const url = URL.createObjectURL(blob);
 
@@ -238,10 +432,26 @@
             link.download = 'ids_output.svg';
             document.body.appendChild(link);
             link.click();
-
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
         }
+
+        // 事件绑定
+        renderBtn.addEventListener('click', renderDirect);
+        downloadBtn.addEventListener('click', downloadSVG);
+        clearBtn.addEventListener('click', () => { input.value = ''; input.focus(); });
+
+        // 快捷按键：按 Enter 渲染
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                renderDirect();
+            }
+        });
+
+        // 初始聚焦（桌面）
+        window.addEventListener('load', () => { input.setAttribute('placeholder', '例如：⿰亻尔'); });
+
     </script>
 </body>
 
