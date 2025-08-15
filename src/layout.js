@@ -24,17 +24,22 @@ const fullframe = function () {
 };
 
 function toUnicode(char) {
-	const codePoint = char.codePointAt(0); // 直接取完整码点
+	if (!char || typeof char !== 'string') return char;
+	const codePoint = char.codePointAt(0);
 	return 'u' + codePoint.toString(16);
 }
 
-function fromUnicode(unicodeStr) {
-	// 去掉开头的 'u'，并转成数字
-	const codePoint = parseInt(unicodeStr.slice(1), 16);
-	// 从码点生成字符
-	return String.fromCodePoint(codePoint);
+function getBaseChar(unicodeStr) {
+	if (!unicodeStr || typeof unicodeStr !== 'string') return '';
+	if (unicodeStr[0] === 'u' && /^[uU][0-9a-fA-F]/.test(unicodeStr)) {
+		const baseHex = unicodeStr.slice(1).split('-')[0];
+		return String.fromCodePoint(parseInt(baseHex, 16));
+	} else {
+		// 已经是单个字符（或以字符开头），返回第一个 code point 对应的字符
+		const cp = unicodeStr.codePointAt(0);
+		return cp ? String.fromCodePoint(cp) : '';
+	}
 }
-
 
 const getVariantChar = function (char, idsKey) {
 	if (!char) return char;
@@ -47,17 +52,14 @@ const getVariantChar = function (char, idsKey) {
 
 const _右侧细长部首 = ['卩', '阝', '刂', '卜'];
 const _左侧细长部首 = ['亻', '氵', '纟', '口', '冫', '目', '牜', '牛', '歹', '彳'];
-const _上侧细长部首 = ['艹', '宀', '冖', '亠', '罒', '𥫗'];
+const _上侧细长部首 = ['艹', '宀', '冖', '亠', '罒'];
 const _下侧细长部首 = ['心', '灬', '止'];
-const _朝鲜语韵尾 = [, 'ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+const _朝鲜语韵尾 = ['ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
 const _临时左侧细长部首 = [];
 
-let lastchar = '';
-let nextchar = '';
-
 const specialProcess = {
-	钅() {
-		if (getVariantChar(toUnigcode(nextchar, '⿰2')) == nextchar) return 'u9485-l01'
+	钅({nextchar }) {
+		if (nextchar && getVariantChar(toUnicode(nextchar), '⿰2') == toUnicode(nextchar)) return 'u9485-l01'
 		_临时左侧细长部首.push('钅')
 		return 'u9485-l'
 	},
@@ -67,7 +69,15 @@ const specialProcess = {
 	}
 }
 
-const framebypart = function (idc, frame, part, char) {
+function getEffectiveChar(node) {
+	if (node.p1) return '';
+	return getBaseChar(node.ch);
+}
+
+// 辅助：取得字符串第一个 code point（整数），如果不是字符串或为空返回 0
+const firstCodePoint = (s) => (s && typeof s === 'string') ? s.codePointAt(0) : 0;
+
+const framebypart = function (idc, frame, part, char, lastchar, nextchar) {
 	var f = {};
 	const fullsurround = () => {
 		if (part == 0) { f.x1 = frame.x1; f.y1 = frame.y1; f.x2 = frame.x2; f.y2 = frame.y2; }
@@ -93,7 +103,7 @@ const framebypart = function (idc, frame, part, char) {
 			break;
 		case 0x2ff1: // ⿱
 			if (part == 0)
-				if (_下侧细长部首.includes(nextchar)) { f.y1 = frame.y1; f.y2 = frame.y2 - (frame.y2 - frame.y1) / 2.5; f.x1 = frame.x1; f.x2 = frame.x2; }
+				if (_下侧细长部首.includes(nextchar)) { f.y1 = frame.y1; f.y2 = frame.y2 - (frame.y2 - frame.y1) / 4; f.x1 = frame.x1; f.x2 = frame.x2; }
 				else { f.y1 = frame.y1; f.y2 = frame.y2 - (frame.y2 - frame.y1) / 2; f.x1 = frame.x1; f.x2 = frame.x2; }
 			else if (part == 1) {
 				if (_朝鲜语韵尾.includes(char)) { f.y1 = frame.y1; f.y2 = frame.y2 + (frame.y2 - frame.y1) / 2.5; f.x1 = frame.x1; f.x2 = frame.x2; }
@@ -135,14 +145,13 @@ const framebypart = function (idc, frame, part, char) {
 			if (part == 0 || part == 1) { f.x1 = frame.x1; f.y1 = frame.y1; f.x2 = frame.x2; f.y2 = frame.y2; }
 			break;
 	}
-	lastchar = char;
 	return f;
 };
-const framebypartVariant = function (idc, frame, part, char) {
+const framebypartVariant = function (idc, frame, part, char, lastchar, nextchar) {
 	var f = {};
 	switch (idc) {
 		case 0x2ff1: // ⿱
-			if (part == 0 && _下侧细长部首.includes(nextchar)) { f.y1 = frame.y1; f.y2 = frame.y2 + (frame.y2 - frame.y1) / 4; f.x1 = frame.x1; f.x2 = frame.x2; }
+			if (part == 0 && _下侧细长部首.includes(nextchar)) { f.y1 = frame.y1; f.y2 = frame.y2 + (frame.y2 - frame.y1) / 2; f.x1 = frame.x1; f.x2 = frame.x2; }
 			else if (part == 1 && _上侧细长部首.includes(lastchar)) { f.y1 = frame.y1 - (frame.y2 - frame.y1) / 5; f.y2 = frame.y2; f.x1 = frame.x1; f.x2 = frame.x2; }
 			else { f.x1 = frame.x1; f.y1 = frame.y1; f.x2 = frame.x2; f.y2 = frame.y2 }
 			break;
@@ -154,111 +163,132 @@ const framebypartVariant = function (idc, frame, part, char) {
 			f.x1 = frame.x1; f.y1 = frame.y1; f.x2 = frame.x2; f.y2 = frame.y2;
 			break;
 	}
-	lastchar = char;
 	return f;
 };
 
-const fitparts = function (parent, frame) {
-	var idc = parent["ch"] && parent["ch"].charCodeAt ? parent["ch"].charCodeAt(0) : 0;
-	var operand = getOperandByIDC(idc);
-	var i = 1;
-	while (operand > 0) {
-		var child = parent["p" + i];
-		if (!child) { i++; operand--; continue; }
-
-		var topLevelKey = String.fromCharCode(idc) + i;
-
-		// 如果 child 是一个 IDC 操作符节点，必须为其分配子槽并继续递归
-		if (isIDC(child["ch"].charCodeAt(0))) {
-			var f = framebypart(idc, frame, i - 1, variant);
-			// 递归处理子树
-			fitparts(child, f);
-		} else {
-			var childCh = child["ch"] || "";
-			var base = (childCh.split ? childCh.split('-')[0] : childCh).toLowerCase();
-
-			var variant = getVariantChar(base, topLevelKey);
-
-			if (variant === base || !variant.split('-')[1].includes('0')) {
-				var f = framebypart(idc, frame, i - 1, fromUnicode(variant));
-				child.frame = f;
-			} else {
-				child.frame = framebypartVariant(idc, frame, i - 1, variant);
-			}
-		}
-
-		i++; operand--;
-	}
-};
-
-
-const addchild = function (ids, parent, frame, depth = 0, parentIDC = null) {
-	if (depth > 20) throw new Error("递归深度超过限制，可能存在循环引用");
-	if (!ids || ids.length === 0 || !isIDC(ids.charCodeAt(0))) {
+function parseIds(ids, depth = 0) {
+	if (depth > 20) throw new Error("递归深度超过限制");
+	if (!ids || ids.length === 0) {
 		throw new Error(`无效的IDS格式，必须以IDC开头：${ids}`);
 	}
-	var idc = ids.charCodeAt(0);
-	var operand = getOperandByIDC(idc);
-	parent.ch = Array.from(ids)[0];
-	let arr = Array.from(ids);
-	arr.shift();
-	ids = arr.join('');
+	const chars = Array.from(ids);
+	let pos = 0;
 
-	var i = 1;
-	while (operand > 0) {
-		if (!ids) throw new Error("IDS缺少部件字符");
-		const char = Array.from(ids)[0];
+	if (chars.length === 0 || !isIDC(chars[pos].codePointAt(0))) {
+		throw new Error(`无效的IDS格式，必须以IDC开头：${ids}`);
+	}
 
-		var originalUnicode = toUnicode(char); // e.g. "u5965"
-		var topLevelKey = String.fromCharCode(idc) + i;
-		var finalUnicode = isIDC(ids.charCodeAt(0))
-			? originalUnicode
-			: getVariantChar(originalUnicode, topLevelKey);
+	// 内部递归函数：从 chars[pos] 开始解析，返回 [node, newPos]
+	function parseFromArray(arr, startPos, d) {
+		if (d > 20) throw new Error("递归深度超过限制");
+		if (startPos >= arr.length) throw new Error("IDS解析意外结束");
 
-		var f;
-		nextchar = ids[1] ?? '';
+		const idcChar = arr[startPos];
+		const idc = idcChar.codePointAt(0);
+		if (!isIDC(idc)) throw new Error(`预期 IDC，但得到: ${idcChar}`);
 
-		if (specialProcess.hasOwnProperty(char)) finalUnicode = specialProcess[char]({
-			defaultUnicode: finalUnicode,
-			part: i - 1
-		});
-
-		//console.log(finalUnicode)
-		if (isIDC(ids.charCodeAt(0))) {
-			f = framebypart(idc, frame, i - 1, char);
-		} else {
-			if (finalUnicode === originalUnicode || !finalUnicode.split('-')[1].includes('0')) {
-				f = framebypart(idc, frame, i - 1, char);
+		let operand = getOperandByIDC(idc);
+		const tree = { ch: idcChar };
+		let curPos = startPos + 1;
+		let i = 1;
+		while (operand > 0) {
+			if (curPos >= arr.length) throw new Error("IDS缺少部件字符");
+			const ch = arr[curPos];
+			let child;
+			const chCp = ch.codePointAt(0);
+			if (isIDC(chCp)) {
+				// 递归解析子 IDC
+				const [childNode, nextPos] = parseFromArray(arr, curPos, d + 1);
+				child = childNode;
+				curPos = nextPos;
 			} else {
-				f = framebypartVariant(idc, frame, i - 1, char);
+				// 非 IDC，使用 toUnicode（会生成 'uXXXX' 格式）
+				child = { ch: toUnicode(ch) };
+				curPos++;
+			}
+			tree[`p${i}`] = child;
+			i++; operand--;
+		}
+		return [tree, curPos];
+	}
+
+	const [tree, newPos] = parseFromArray(chars, pos, depth);
+	const remaining = chars.slice(newPos).join('');
+	return [tree, remaining];
+}
+
+function applyVariants(node) {
+	if (!node.p1) return;
+	const idcCode = firstCodePoint(node.ch);
+	const operand = getOperandByIDC(idcCode);
+	const children = [];
+	for (let i = 1; i <= operand; i++) {
+		children.push(node[`p${i}`]);
+	}
+	for (let i = 0; i < operand; i++) {
+		const child = children[i];
+		if (child.p1) {
+			applyVariants(child);
+		} else {
+			const base = child.ch;
+			const idsKey = node.ch + (i + 1);
+			const defaultUnicode = getVariantChar(base, idsKey);
+			const thisChar = getBaseChar(base);
+			const nextChar = i + 1 < operand ? getEffectiveChar(children[i + 1]) : '';
+			if (specialProcess.hasOwnProperty(thisChar)) {
+				child.ch = specialProcess[thisChar]({
+					part: i,
+					defaultUnicode,
+					nextchar: nextChar
+				});
+			} else {
+				child.ch = defaultUnicode;
 			}
 		}
-
-		var child = parent["p" + i] = { "ch": finalUnicode };
-
-		if (isIDC(ids.charCodeAt(0))) {
-			ids = addchild(ids, child, f, depth + 1, idc);
-			fitparts(child, f);
-		} else {
-			child.frame = f;
-			let arr = Array.from(ids);
-			arr.shift();
-			ids = arr.join('');
-		}
-
-		i++; operand--;
 	}
-	return ids;
-};
+}
 
+function fitparts(parent, frame) {
+	const idcCode = firstCodePoint(parent.ch);
+	const operand = getOperandByIDC(idcCode);
+	const children = [];
+	for (let i = 1; i <= operand; i++) {
+		children.push(parent[`p${i}`]);
+	}
+	for (let i = 0; i < operand; i++) {
+		const child = children[i];
+		const lastChar = i > 0 ? getEffectiveChar(children[i - 1]) : '';
+		const nextChar = i < operand - 1 ? getEffectiveChar(children[i + 1]) : '';
+		const thisChar = getEffectiveChar(child);
+		let f;
+		let useVariantFrame = false;
+		if (!child.p1) {
+			const variantStr = child.ch;
+			// 判断 variantStr 是否包含 '-0' 类的标志（与原逻辑保持一致）
+			if (variantStr.includes('-') && variantStr.split('-')[1].includes('0')) {
+				useVariantFrame = true;
+			}
+		}
+		if (useVariantFrame) {
+			f = framebypartVariant(idcCode, frame, i, thisChar, lastChar, nextChar);
+		} else {
+			f = framebypart(idcCode, frame, i, thisChar, lastChar, nextChar);
+		}
+		child.frame = f;
+		if (child.p1) {
+			fitparts(child, f);
+		}
+	}
+}
 
 const drawparts = function (output, parent, x, y, w, h) {
-	var idc = parent.ch.charCodeAt && parent.ch.charCodeAt(0) ? parent.ch.charCodeAt(0) : null;
+	var idc = parent.ch ? firstCodePoint(parent.ch) : null;
 	var operand = getOperandByIDC(idc || 0);
 	var i = 1;
 	while (operand > 0) {
 		var child = parent["p" + i];
-		if (isIDC(child.ch.charCodeAt && child.ch.charCodeAt(0) ? child.ch.charCodeAt(0) : 0)) {
+		// 判断 child 是否是 IDC：注意 child.ch 可能是 'uXXXX' 之类或实际字符
+		if (isIDC(firstCodePoint(child.ch))) {
 			drawparts(output, child, x, y, w, h);
 		} else {
 			var f = child.frame;
@@ -273,9 +303,11 @@ const drawparts = function (output, parent, x, y, w, h) {
 
 class layout {
 	draw(ids) {
-		const idstree = {};
 		try {
-			addchild(ids, idstree, fullframe());
+			const [idstree, remaining] = parseIds(ids);
+			if (remaining) throw new Error("IDS解析后剩余未处理字符");
+			applyVariants(idstree);
+			fitparts(idstree, fullframe());
 			var output = [];
 			drawparts(output, idstree, 0, 0, 200, 200);
 			return output;
