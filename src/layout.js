@@ -93,8 +93,8 @@ const framebypart = function (idc, frame, part, char) {
 			break;
 		case 0x2ff1: // ⿱
 			if (part == 0)
-				if (_下侧细长部首.includes(nextchar)) { f.y1 = frame.y1; f.y2 = frame.y1 + (frame.y2 - frame.y1) / 1.5; f.x1 = frame.x1; f.x2 = frame.x2; }
-				else { f.y1 = frame.y1; f.y2 = frame.y1 + (frame.y2 - frame.y1) / 2; f.x1 = frame.x1; f.x2 = frame.x2; }
+				if (_下侧细长部首.includes(nextchar)) { f.y1 = frame.y1; f.y2 = frame.y2 - (frame.y2 - frame.y1) / 2.5; f.x1 = frame.x1; f.x2 = frame.x2; }
+				else { f.y1 = frame.y1; f.y2 = frame.y2 - (frame.y2 - frame.y1) / 2; f.x1 = frame.x1; f.x2 = frame.x2; }
 			else if (part == 1) {
 				if (_朝鲜语韵尾.includes(char)) { f.y1 = frame.y1; f.y2 = frame.y2 + (frame.y2 - frame.y1) / 2.5; f.x1 = frame.x1; f.x2 = frame.x2; }
 				else if (_上侧细长部首.includes(lastchar)) { f.y1 = frame.y1 + (frame.y2 - frame.y1) / 4; f.y2 = frame.y2; f.x1 = frame.x1; f.x2 = frame.x2; }
@@ -142,10 +142,8 @@ const framebypartVariant = function (idc, frame, part, char) {
 	var f = {};
 	switch (idc) {
 		case 0x2ff1: // ⿱
-			if (part == 1) {
-				if (_上侧细长部首.includes(lastchar)) { f.y1 = frame.y1 - (frame.y2 - frame.y1) / 5; f.y2 = frame.y2; f.x1 = frame.x1; f.x2 = frame.x2; }
-				else { f.x1 = frame.x1; f.y1 = frame.y1; f.x2 = frame.x2; f.y2 = frame.y2 }
-			}
+			if (part == 0 && _下侧细长部首.includes(nextchar)) { f.y1 = frame.y1; f.y2 = frame.y2 + (frame.y2 - frame.y1) / 4; f.x1 = frame.x1; f.x2 = frame.x2; }
+			else if (part == 1 && _上侧细长部首.includes(lastchar)) { f.y1 = frame.y1 - (frame.y2 - frame.y1) / 5; f.y2 = frame.y2; f.x1 = frame.x1; f.x2 = frame.x2; }
 			else { f.x1 = frame.x1; f.y1 = frame.y1; f.x2 = frame.x2; f.y2 = frame.y2 }
 			break;
 		case 0x2ffa: // ⿺

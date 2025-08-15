@@ -1,0 +1,13 @@
+{
+    "watch": [
+        "server",
+        "src",
+        "run"
+    ],
+    "ext": "js",
+    "delay": "250",
+    "exec": "node server/index.js",
+    "env": {
+        "NODE_ENV": "development"
+    }
+}

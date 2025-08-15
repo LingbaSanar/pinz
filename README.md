@@ -1,8 +1,8 @@
 # PINZ
-由IDS字符串通过Kage字形组建SVG。  
+由IDS字符串通过Kage字形组建图像。  
 [动态组字](https://0832.ink/pinz)  
   
-感谢：[Kage字形引擎](https://github.com/kamichikoichi/kage-engine) · [GlyphWiki](https://glyphwiki.org/)
+感谢：[IDSKage](https://github.com/g0v/idskage) · [Kage字形引擎](https://github.com/kamichikoichi/kage-engine) · [GlyphWiki](https://glyphwiki.org/)
 
 # 使用方法
 ### 拉取引用
@@ -28,19 +28,11 @@ npm run build-kage
 ```
 这将构建`run/kage`下的Kage引擎Nodejs版本为一个独立文件，输出在`dist/kage.js`。  
   
-### 构建程序
-```
-npm run build
-```
-这将构建`run`下的程序为一个独立文件，输出在`dist/main.js`。  
-* 注意：包含了GPLv3代码和大文件`dump.json`  
-  
 ### 运行GUI
 ```
 npm run dev
 ```
-这将运行程序。  
-* 注意：包含了GPLv3代码和大文件`dump.json`  
+这将运行程序。   
   
 ### Node.js引用
 ```js

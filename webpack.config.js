@@ -1,14 +1,24 @@
 const path = require('path');
 
 module.exports = {
-    entry: './run/index.js',
+    entry: './run/kage/index.js',
     output: {
-        filename: 'main.js',
+        filename: 'kage.js',
         path: path.resolve(__dirname, 'dist')
     },
-    performance: {
-        maxEntrypointSize: 1024 * 1024 * 1024,
-        maxAssetSize: 1024 * 1024 * 1024
-    },
-    mode: 'production'
+    mode: 'production',
+    devServer: {
+        port: 8080,
+        open: true,
+        hot: true,
+        proxy: [
+            {
+                context: ['/processids'],
+                target: 'http://localhost:3500',
+                changeOrigin: true,
+                secure: false
+            }
+        ],
+        historyApiFallback: true
+    }
 };

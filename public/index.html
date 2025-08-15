@@ -170,15 +170,55 @@
         <a href="https://glyphwiki.org/" target="_blank">GlyphWiki</a>
     </footer>
 
-    <script src="main.js"></script>
+    <script src="kage.js"></script>
     <script>
-        const pinz = new Pinz();
-
         function renderDirect() {
             const ids = document.getElementById('ids-input').value;
-            const svgGroup = pinz.printSVG(ids, 512);
-            const g = document.querySelector('#output-svg g');
-            g.innerHTML = svgGroup;
+
+            fetch('/processids', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    ids: ids,
+                    size: 512
+                })
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                .then(kageCommand => {
+                    const kage = new Kage();
+                    kage.kUseCurve = false;
+                    const polygons = new Polygons();
+
+                    const size = 512;
+
+                    kage.kBuhin.push('ids', kageCommand);
+
+                    kage.makeGlyph(polygons, 'ids');
+
+                    const scale = size / 200;
+
+                    const paths = polygons.array.map(poly => {
+                        const pts = poly.array
+                            .map((pt, i) => `${i === 0 ? 'M' : 'L'}${(pt.x * scale).toFixed(2)},${(pt.y * scale).toFixed(2)}`)
+                            .join(' ');
+                        return `<path d="${pts} Z" fill="black" />`;
+                    }).join('\n  ');
+
+                    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">\n${paths}\n</svg>`;
+
+                    const g = document.querySelector('#output-svg g');
+                    g.innerHTML = svg;
+                })
+                .catch(error => {
+                    console.error('Error fetching SVG:', error);
+                });
         }
 
         function add(idc) {

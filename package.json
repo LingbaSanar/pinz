@@ -3,19 +3,17 @@
   "version": "1.0.0",
   "main": "src/index.js",
   "description": "Generate Kage glyph format from IDS",
-  "directories": {
-    "lib": "lib"
-  },
   "scripts": {
     "test": "node test/index.js",
     "serve": "node server/index.js",
-    "build-kage": "webpack --config kage.webpack.config.js",
-    "build": "webpack",
-    "dev": "webpack serve --open"
+    "build-kage": "webpack",
+    "dev": "concurrently \"nodemon --config nodemon.json\" \"webpack serve --open\""
   },
-  "author": "",
-  "license": "ISC",
+  "author": "0832",
+  "license": "MIT",
   "devDependencies": {
+    "concurrently": "^9.2.0",
+    "nodemon": "^3.1.10",
     "webpack": "^5.101.1",
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.2"
